@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends clamav ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /service
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app ./app
+# This image needs current definitions; rebuild daily and refresh before every scan.
+# Definitions age is checked by the worker; failure keeps documents quarantined.
+ENTRYPOINT ["sh", "-c", "freshclam --stdout && exec python -m app.scan \"$@\"", "scanner"]
+USER clamav

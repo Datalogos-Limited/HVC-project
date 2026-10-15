@@ -1,0 +1,1 @@
+The full architecture report and UML diagrams are in vehicle-vault-documents-and-diagrams.zip and the complete vehicle-vault-platform.zip archive. See docs/DEPLOYMENT.md for staged rollout and docs/VALIDATION.md for verified and unverified checks.

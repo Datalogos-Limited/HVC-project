@@ -1,0 +1,6 @@
+project_id      = "YOUR_PROJECT_ID"
+region          = "europe-west2"
+frontend_origin = "https://portal.example.com"
+api_domain      = "api.example.com"
+image           = "europe-west2-docker.pkg.dev/YOUR_PROJECT_ID/dcb-vaults/api@sha256:REPLACE_WITH_REAL_DIGEST"
+scanner_image   = "europe-west2-docker.pkg.dev/YOUR_PROJECT_ID/dcb-vaults/scanner@sha256:REPLACE_WITH_REAL_DIGEST"
