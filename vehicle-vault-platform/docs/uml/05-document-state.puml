@@ -1,0 +1,15 @@
+@startuml
+title Implemented document state machine
+[*] --> awaiting_upload : POST metadata
+awaiting_upload --> awaiting_upload : invalid bytes / upload rejected
+awaiting_upload --> quarantined : bytes stored + generation committed
+quarantined --> quarantined : scanner failure / stale definitions / retry
+quarantined --> clean : clean scan + promote + DB commit
+quarantined --> rejected : malware found
+clean --> clean : authorised generation-pinned download
+note right of clean
+ No public clean-status mutation.
+ No delete endpoint in starter.
+ Retention/legal-hold deletion is planned.
+end note
+@enduml

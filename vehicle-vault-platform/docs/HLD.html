@@ -1,0 +1,377 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dream Car Brokers — GCP HLD</title><style>body{font-family:system-ui,-apple-system,sans-serif;line-height:1.65;color:#172033;background:#f2f5f9;margin:0}main{max-width:1150px;margin:32px auto;padding:44px 54px;background:#fff;border-radius:12px}h1,h2,h3{line-height:1.25;color:#102c49}h1{font-size:34px}h2{margin-top:42px;padding-top:16px;border-top:1px solid #dfe5ee}table{border-collapse:collapse;font-size:14px;width:100%;margin:22px 0}td,th{border:1px solid #dfe5ee;padding:10px;text-align:left;vertical-align:top}th{background:#edf3fa}code{background:#edf2f7;padding:2px 5px;font-size:.9em}pre{background:#edf2f7;padding:18px;overflow:auto}a{color:#145e9d}img,.diagram svg{width:100%;height:auto;margin:16px 0}nav{padding:14px 0;border-bottom:1px solid #dfe5ee;font-size:14px}nav a{margin-right:18px}@media print{body{background:white}main{margin:0;padding:0;max-width:none}h2{break-after:avoid}tr,img{break-inside:avoid}nav{display:none}}</style></head><body><main><nav><a href="API-GUIDE.md">API guide</a><a href="DEPLOYMENT.md">Deployment</a><a href="FRONTEND-REVIEW.md">Frontend review</a><a href="VALIDATION.md">Validation</a><a href="uml/02-domain-model.puml">Editable UML</a></nav><h1 id="dream-car-brokers-gcp-high-level-design">Dream Car Brokers — GCP high-level design</h1>
+<p><strong>Version 0.1 · 15 October 2026 · Engineering handover</strong></p>
+<h2 id="1-outcome-and-delivery-boundary">1. Outcome and delivery boundary</h2>
+<p>Build a secure vehicle wealth-management platform around the supplied Dream Car Brokers frontend, with four independently permissioned vaults: compliance, client relationships, vehicles and finance. This package contains a runnable API foundation and deployment configuration, plus a target design for the larger regulated workflow. It has not been deployed to GCP, connected to a bank, or certified for production. Read the implementation matrix below before estimating remaining work.</p>
+<p>The public frontend and its deployed JavaScript were reviewed. The private source repository, Netlify access rules and any undisclosed backend were unavailable. The source review records the evidence and migration points. The existing UI does not establish a trustworthy server-side state: its records and document uploads are browser-local; the larger-file upload path saves no file content.</p>
+<p>The supplied DataVaults PDFs inform this design's policy, provenance and lifecycle model. They describe an EU research platform for personal data storage, sharing, analysis and monetisation. They do not specify a vehicle escrow platform, establish a compliance certification, or supply a drop-in GCP vault product. This design deliberately does not claim to implement that research system's attribute-based encryption, searchable encryption, DLT or cryptocurrency mechanisms.</p>
+<h2 id="2-assumptions-and-decisions">2. Assumptions and decisions</h2>
+<ul>
+<li>One GCP project per environment; a London primary region (<code>europe-west2</code>) is proposed, subject to residency requirements. Four separate Cloud SQL PostgreSQL instances provide domain isolation. A higher-assurance production variant uses a project per vault with separate administrators and service perimeters.</li>
+<li>One organisation is a tenant. A client is an individual or legal entity inside it, independent of the login identity. Initially one approved tenant and at most one client binding per login. Multi-organisation switching and delegated sharing require an explicit membership model in a later phase.</li>
+<li>End users authenticate with Identity Platform. OAuth/OIDC authenticates users and delegates access; IAM governs service and operator access to GCP. Neither replaces row-level authorisation inside the application.</li>
+<li>Clients access their own records; staff access their permitted domain within their organisation. There is no universal administrator role in the runtime API. Staff must present an MFA-authenticated token.</li>
+<li>Financial values use integer minor units and explicit ISO currency codes. Quotes, rates and fractional quantities use fixed-point decimal strings. Historical vehicles may have short chassis numbers; do not enforce a modern 17-character VIN rule globally.</li>
+<li>The platform records money movement; a selected banking/escrow provider holds or transfers money. A cloud bucket or a database balance is not an escrow account. Specific provider, legal structure, jurisdictions, sanctions sources and obligations remain decisions for the product/compliance team.</li>
+</ul>
+<h2 id="3-logical-architecture">3. Logical architecture</h2>
+<p><div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1240" height="825" viewBox="0 0 1240 825" role="img"><title>Four-vault GCP architecture</title><desc>Identity Platform, HTTPS edge, four independent APIs, databases and document stores, plus planned external providers.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs><rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="35" y="42" font-family="Arial,sans-serif" font-size="25" fill="#0f172a" font-weight="bold">DREAM CAR BROKERS  /  GCP ARCHITECTURE</text>
+<text x="35" y="68" font-family="Arial,sans-serif" font-size="15" fill="#475569" font-weight="normal">GCP foundation configuration · finance/provider execution remains planned</text>
+<rect x="370" y="95" width="500" height="85" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M378,95 H862 Q870,95 870,103 V133 H370 V103 Q370,95 378,95" fill="#dbeafe"/>
+<text x="384" y="120" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Web frontend + Identity Platform</text>
+<text x="384" y="157" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Verified email · approved membership · staff MFA</text>
+<path d="M620,180 L620,213" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="370" y="215" width="500" height="85" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M378,215 H862 Q870,215 870,223 V253 H370 V223 Q370,215 378,215" fill="#dbeafe"/>
+<text x="384" y="240" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">HTTPS load balancer + Cloud Armor</text>
+<text x="384" y="277" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Four API subdomains · application token verification</text>
+<path d="M620,300 V322 H165 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="30" y="350" width="275" height="102" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,350 H297 Q305,350 305,358 V388 H30 V358 Q30,350 38,350" fill="#dbeafe"/>
+<text x="44" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">CLIENTS API</text>
+<text x="44" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="44" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Relationship manager</text>
+<path d="M165,452 L165,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="30" y="484" width="275" height="101" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,484 H297 Q305,484 305,492 V522 H30 V492 Q30,484 38,484" fill="#dbeafe"/>
+<text x="44" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="44" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="44" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="30" y="605" width="275" height="100" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,605 H297 Q305,605 305,613 V643 H30 V613 Q30,605 38,605" fill="#dbeafe"/>
+<text x="44" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="44" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="44" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M165,585 L165,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H470 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="335" y="350" width="275" height="102" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,350 H602 Q610,350 610,358 V388 H335 V358 Q335,350 343,350" fill="#dcfce7"/>
+<text x="349" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">VEHICLES API</text>
+<text x="349" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="349" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Asset manager</text>
+<path d="M470,452 L470,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="335" y="484" width="275" height="101" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,484 H602 Q610,484 610,492 V522 H335 V492 Q335,484 343,484" fill="#dcfce7"/>
+<text x="349" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="349" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="349" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="335" y="605" width="275" height="100" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,605 H602 Q610,605 610,613 V643 H335 V613 Q335,605 343,605" fill="#dcfce7"/>
+<text x="349" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="349" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="349" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M470,585 L470,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H775 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="640" y="350" width="275" height="102" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,350 H907 Q915,350 915,358 V388 H640 V358 Q640,350 648,350" fill="#fef3c7"/>
+<text x="654" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">COMPLIANCE API</text>
+<text x="654" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="654" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Compliance officer</text>
+<path d="M775,452 L775,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="640" y="484" width="275" height="101" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,484 H907 Q915,484 915,492 V522 H640 V492 Q640,484 648,484" fill="#fef3c7"/>
+<text x="654" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="654" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="654" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="640" y="605" width="275" height="100" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,605 H907 Q915,605 915,613 V643 H640 V613 Q640,605 648,605" fill="#fef3c7"/>
+<text x="654" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="654" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="654" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M775,585 L775,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H1080 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="945" y="350" width="275" height="102" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,350 H1212 Q1220,350 1220,358 V388 H945 V358 Q945,350 953,350" fill="#ede9fe"/>
+<text x="959" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">FINANCE API</text>
+<text x="959" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="959" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Finance operator</text>
+<path d="M1080,452 L1080,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="945" y="484" width="275" height="101" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,484 H1212 Q1220,484 1220,492 V522 H945 V492 Q945,484 953,484" fill="#ede9fe"/>
+<text x="959" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="959" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="959" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="945" y="605" width="275" height="100" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,605 H1212 Q1220,605 1220,613 V643 H945 V613 Q945,605 953,605" fill="#ede9fe"/>
+<text x="959" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="959" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="959" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M1080,585 L1080,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="230" y="740" width="780" height="60" rx="8" fill="white" stroke="#f1f5f9" stroke-width="2"/>
+<path d="M238,740 H1002 Q1010,740 1010,748 V778 H230 V748 Q230,740 238,740" fill="#f1f5f9"/>
+<text x="244" y="765" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">PLANNED: KYC/AML · escrow · payments · bank OAuth · FX/hedges</text>
+</svg></div></p>
+<p><div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1240" height="975" viewBox="0 0 1240 975" role="img"><title>UML domain overview</title><desc>Class relationships for clients, compliance, vehicles, finance and documents. This represents the target domain; not all classes are implemented.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs><rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="35" y="42" font-family="Arial,sans-serif" font-size="25" fill="#0f172a" font-weight="bold">DREAM CAR BROKERS  /  UML DOMAIN OVERVIEW</text>
+<text x="35" y="70" font-family="Arial,sans-serif" font-size="15" fill="#475569" font-weight="normal">Target schema · cross-vault relationships use opaque UUID references</text>
+<rect x="440" y="105" width="360" height="146" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M448,105 H792 Q800,105 800,113 V143 H440 V113 Q440,105 448,105" fill="#dbeafe"/>
+<text x="454" y="130" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">ClientEntity</text>
+<text x="454" y="167" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ id: UUID</text>
+<text x="454" y="190" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ tenantId: UUID</text>
+<text x="454" y="213" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ entityType: ClientType</text>
+<text x="454" y="236" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ name, domicile: string</text>
+<rect x="30" y="325" width="350" height="170" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M38,325 H372 Q380,325 380,333 V363 H30 V333 Q30,325 38,325" fill="#fef3c7"/>
+<text x="44" y="350" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">KYCCase</text>
+<text x="44" y="387" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ id, clientId: UUID</text>
+<text x="44" y="410" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ status: KYCState</text>
+<text x="44" y="433" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ reviewDueAt: datetime</text>
+<text x="44" y="456" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">0..* ScreeningResult</text>
+<text x="44" y="479" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">0..* ComplianceDecision</text>
+<rect x="445" y="325" width="350" height="170" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M453,325 H787 Q795,325 795,333 V363 H445 V333 Q445,325 453,325" fill="#dcfce7"/>
+<text x="459" y="350" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Vehicle</text>
+<text x="459" y="387" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ id, clientId: UUID</text>
+<text x="459" y="410" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ chassisNumber: string</text>
+<text x="459" y="433" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ titleStatus: TitleState</text>
+<text x="459" y="456" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">0..* Valuation / OwnershipPeriod</text>
+<text x="459" y="479" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">0..* Encumbrance</text>
+<rect x="860" y="325" width="350" height="170" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M868,325 H1202 Q1210,325 1210,333 V363 H860 V333 Q860,325 868,325" fill="#ede9fe"/>
+<text x="874" y="350" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Transaction</text>
+<text x="874" y="387" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ id, clientId, assetId: UUID</text>
+<text x="874" y="410" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ amountMinor: int64</text>
+<text x="874" y="433" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ currency: ISO currency</text>
+<text x="874" y="456" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ status: TransactionState</text>
+<text x="874" y="479" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">0..* Payment / FXQuote / Hedge</text>
+<path d="M620,251 V285 H205 V322" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="213" y="313" font-family="Arial,sans-serif" font-size="12" fill="#475569" font-weight="normal">1 → 0..*</text>
+<path d="M620,251 V285 H620 V322" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="628" y="313" font-family="Arial,sans-serif" font-size="12" fill="#475569" font-weight="normal">1 → 0..*</text>
+<path d="M620,251 V285 H1035 V322" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1043" y="313" font-family="Arial,sans-serif" font-size="12" fill="#475569" font-weight="normal">1 → 0..*</text>
+<path d="M860,400 L798,400" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="803" y="386" font-family="Arial,sans-serif" font-size="11" fill="#475569" font-weight="normal">asset</text>
+<rect x="30" y="610" width="350" height="193" rx="8" fill="white" stroke="#f1f5f9" stroke-width="2"/>
+<path d="M38,610 H372 Q380,610 380,618 V648 H30 V618 Q30,610 38,610" fill="#f1f5f9"/>
+<text x="44" y="635" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Document</text>
+<text x="44" y="672" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ id, parentId: UUID</text>
+<text x="44" y="695" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ tenantId, clientId: UUID</text>
+<text x="44" y="718" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ vault: VaultType</text>
+<text x="44" y="741" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ sha256: string</text>
+<text x="44" y="764" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ generation: int64</text>
+<text x="44" y="787" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ status: DocumentState</text>
+<rect x="445" y="610" width="350" height="193" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M453,610 H787 Q795,610 795,618 V648 H445 V618 Q445,610 453,610" fill="#ede9fe"/>
+<text x="459" y="635" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Escrow + Approval</text>
+<text x="459" y="672" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ providerReference: string</text>
+<text x="459" y="695" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ contractReference: string</text>
+<text x="459" y="718" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ releaseState: EscrowState</text>
+<text x="459" y="741" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ makerUid: string</text>
+<text x="459" y="764" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ approverUid: string</text>
+<text x="459" y="787" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">{ makerUid != approverUid }</text>
+<rect x="860" y="610" width="350" height="193" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M868,610 H1202 Q1210,610 1210,618 V648 H860 V618 Q860,610 868,610" fill="#ede9fe"/>
+<text x="874" y="635" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Journal + Posting</text>
+<text x="874" y="672" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ journalId, accountId: UUID</text>
+<text x="874" y="695" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ signedMinor: int64</text>
+<text x="874" y="718" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">+ currency: ISO currency</text>
+<text x="874" y="741" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">{ sum = 0 per currency }</text>
+<text x="874" y="764" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Append-only posted entries</text>
+<text x="874" y="787" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Compensating reversal entries</text>
+<path d="M205,610 L205,498" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="45" y="555" font-family="Arial,sans-serif" font-size="12" fill="#475569" font-weight="normal">Parent is local to the chosen vault</text>
+<path d="M1035,495 L1035,607" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1045" y="565" font-family="Arial,sans-serif" font-size="12" fill="#475569" font-weight="normal">1 → 0..*</text>
+<path d="M1035,530 H620 V607" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="35" y="856" font-family="Arial,sans-serif" font-size="15" fill="#0f172a" font-weight="bold">Implemented: client / vehicle core records, KYC drafts, transaction drafts and document lifecycle.</text>
+<text x="35" y="884" font-family="Arial,sans-serif" font-size="15" fill="#475569" font-weight="normal">Planned: screening decisions, escrow, approvals, payment execution, FX/hedges and double-entry ledger.</text>
+<text x="35" y="928" font-family="Arial,sans-serif" font-size="14" fill="#475569" font-weight="normal">Editable detailed UML: docs/uml/02-domain-model.puml  ·  Current persistence: scripts/schema.sql</text>
+</svg></div></p>
+<p>The same API code is deployed four times with a fixed <code>VAULT</code> setting. Only that domain's routes are registered in its process. Each runtime has one IAM database user on its own database instance and bucket permissions only for its domain. It cannot read the other vaults' document buckets or log in to their databases. Database login roles never own tables and never receive DDL or DELETE grants.</p>
+<p>The HTTPS edge routes four subdomains to four Cloud Run services through serverless network endpoint groups. Services admit load-balancer/internal ingress; direct public run.app ingress is blocked. Cloud Run invoker access is open at the service layer because end-user Identity Platform tokens are verified by the application, rather than being Cloud Run IAM invoker tokens. Cloud Armor throttles at the IP level; production also needs account-aware authentication abuse controls and recovery flows.</p>
+<p>Cloud Run uses Direct VPC egress for private addresses; the Cloud SQL Python connector provides IAM authentication and encrypted connections to private-IP PostgreSQL. Public API/identity calls use Google's public endpoints. There is no static database password or downloaded service account key in the application. A web API key is supplied through Secret Manager to the clients/auth-facing process; restrict it to the Identity Toolkit API, configure quotas and protect authentication endpoints.</p>
+<h2 id="4-four-vault-data-model">4. Four-vault data model</h2>
+<table>
+<thead>
+<tr>
+<th>Vault</th>
+<th>Authoritative records</th>
+<th>Documents</th>
+<th>Access boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compliance</td>
+<td>KYC cases, UBO/control relationships, screening matches, AML reviews, source-of-funds evidence, review due dates, decision history</td>
+<td>Identity, address, corporate/UBO evidence, screening reports</td>
+<td>Compliance officers; clients see their own submission states, never internal investigation notes in the target model</td>
+</tr>
+<tr>
+<td>Clients</td>
+<td>Client entities, contacts, mandates, memberships, sharing grants, preferences</td>
+<td>Mandates, agreements, correspondence</td>
+<td>Relationship managers; clients see their own permitted records</td>
+</tr>
+<tr>
+<td>Vehicles</td>
+<td>Vehicle/chassis identity, ownership history, valuations, encumbrances, diagnostics and annual costs</td>
+<td>Title, insurance, certifications, inspection, provenance, service history</td>
+<td>Asset managers; client binding governs client access</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td>Transaction intent, escrow references, payment state, provider references, FX/hedges, bank connections, ledger, reconciliation</td>
+<td>Contracts, settlement confirmations and statements</td>
+<td>Finance operators, distinct approvers in target workflow; clients see only permitted transaction views</td>
+</tr>
+</tbody>
+</table>
+<p>Each domain owns two private GCS buckets: quarantine and clean. Together these are four logical vaults with eight physical document buckets, plus four relational stores. GCS documents use a separate rotating Cloud KMS key per vault; PostgreSQL uses Cloud SQL's default at-rest encryption in the supplied configuration. Add SQL CMEK if required by the agreed threat model; do not describe it as already configured.</p>
+<p>Cross-vault relationships are opaque UUID references, never duplicated identity documents. In the target design, a status projection exposes only <code>client_id</code>, eligibility result, expiry and evidence version to finance. A finance operator must not have raw AML evidence access. These projections and existence checks across stores are not implemented in the starter; staff can presently create a draft against a UUID whose existence in another vault has not been verified. Those drafts cannot settle.</p>
+<p>The initial persistence layer uses scoped JSONB records, strongly validated at API creation, with immutable IDs, tenant/client ownership, version and timestamp. <code>scripts/schema.sql</code> is the implemented schema. The UML class model represents the fuller target domain; normalized ledger and provider data must be implemented before executing finance commands. All mutation retries use an actor-scoped idempotency key, request fingerprint and PostgreSQL transaction-level advisory lock. Successful creation and its audit entry commit atomically. Keys are retained; no automatic expiry is implemented.</p>
+<h2 id="5-identity-permissions-and-sharing">5. Identity, permissions and sharing</h2>
+<p>Sign-up creates an Identity Platform account only. Email verification is sent using the client SDK, and an authorised operator separately approves an organisation and role using <code>scripts/provision_user.py</code>. Users cannot submit tenant IDs or roles in sign-up requests. Backend authorisation derives tenant and client from verified custom claims, never from a browser-supplied tenant header. Tokens are verified for signature, issuer, audience, expiration, revocation and disabled-user state through the Admin SDK. Staff MFA is checked on every authenticated request.</p>
+<p>Basic <code>/auth/sign-in</code> supports password sign-in. A staff MFA challenge uses the Identity Platform client SDK's resolver; this starter does not proxy MFA enrollment/challenges, email verification, token renewal or password reset. The browser adapter accepts a token callback so SDK-managed refresh is supported. Configure in-memory persistence and use SDK sign-out to clear a browser session. Local sign-out does not revoke an already issued bearer token; an authorised operator revokes sessions for suspected compromise and membership changes. Runtime services receive identity read permissions only, avoiding user-update/custom-claim escalation privileges.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Clients vault</th>
+<th>Vehicles vault</th>
+<th>Compliance vault</th>
+<th>Finance vault</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client</td>
+<td>Own read/doc upload</td>
+<td>Own read/doc upload</td>
+<td>Own case create/read/doc upload</td>
+<td>Own draft read/doc upload</td>
+</tr>
+<tr>
+<td>Relationship manager</td>
+<td>Tenant read/create/doc upload</td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Asset manager</td>
+<td>None</td>
+<td>Tenant read/create/doc upload</td>
+<td>None</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Compliance officer</td>
+<td>None</td>
+<td>None</td>
+<td>Tenant case read/create/doc upload</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Finance operator</td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+<td>Tenant draft read/create/doc upload</td>
+</tr>
+</tbody>
+</table>
+<p>A staff member needing more than one domain needs an explicit approved role set. The provisioning script deliberately grants one role at a time. Production membership administration needs a dedicated privileged service with dual approval for finance/compliance roles; do not expose the operator script as a public endpoint.</p>
+<p>PostgreSQL row-level security restricts tenant and client visibility, using transaction-local scope values to prevent connection-pool leakage. This is defence in depth against missing application filters, not a defence against a fully compromised runtime that can set its own SQL session values. Domain IAM isolation limits that compromise to one vault. The target adds purpose-limited/time-limited sharing grants, legal basis and grant revocation. No externally shared URLs or consent management API is implemented. Keeping downloads behind the API avoids issuing document bearer links that outlive access revocation.</p>
+<h2 id="6-processes-and-state-machines">6. Processes and state machines</h2>
+<h3 id="onboarding-and-kyc">Onboarding and KYC</h3>
+<ol>
+<li>User signs up; verifies email; staff enroll MFA. An operator approves tenant/client membership.</li>
+<li>Relationship manager creates the client entity. Corporate clients need UBO/control structure capture in the target schema.</li>
+<li>Client or compliance officer creates a KYC case and uploads evidence to that case.</li>
+<li>An authorised scan job validates stored generation, file type, checksum and current malware definitions. It marks the record clean only after promotion to the clean bucket succeeds.</li>
+<li>The planned screening integration requests identity/sanctions/PEP checks, records provider evidence versions and routes possible matches to compliance staff. No automatic clearance is derived from merely uploading a document.</li>
+<li>Planned manual review makes an auditable decision with expiry and re-screening schedule. New sanctions matches or expired KYC block settlement eligibility.</li>
+</ol>
+<p>Starter case state is <code>draft</code> only. Target case states: <code>draft → submitted → screening → review → approved / rejected</code>; approved cases can become <code>expired</code> or <code>suspended</code>. Only a compliance reviewer can decide; a client cannot post an approval result.</p>
+<h3 id="vehicle-registration-and-document-lifecycle">Vehicle registration and document lifecycle</h3>
+<p>Asset manager creates the asset with client UUID, chassis number, purchase/valuation currencies and title status. Client name is a view field derived from the client vault. Registered title assertions remain unverified until the relevant evidence/review is complete. Updates, valuations and ownership transfers require separate versioned commands in a later phase.</p>
+<p>Document metadata starts <code>awaiting_upload</code>. Authenticated raw-byte PUT is limited to 20 MiB and checks declared MIME type, actual signature, length and SHA-256. Bytes go to a create-only quarantine object identified by tenant/document UUID. The database captures its exact generation and changes state to <code>quarantined</code>. A failed DB commit after a successful object write can be reconciled by retrying the same bytes; mismatching stored bytes fail closed.</p>
+<p>The scanner uses a separate identity, reads that exact quarantined generation and rejects stale/unavailable antivirus definitions. A successful scan promotes to a create-only clean object; the committed clean generation is pinned for downloads. Infection produces <code>rejected</code>; scanner errors leave the object quarantined. Read access alone cannot submit clean status through an API. The job is manually invoked in the supplied deployment; automatic event delivery, backpressure, pending-job dispatch and dead-letter handling are planned work. Unscanned documents remain unavailable rather than being silently released.</p>
+<p>No document delete endpoint exists. The target deletion flow checks legal holds, approved retention schedules, sharing grants and ownership, then removes all relevant object versions and derived copies with auditable completion. With bucket versioning enabled, deleting the latest object alone is insufficient. Retention duration must be agreed per record type and jurisdiction before irreversible bucket locks are enabled.</p>
+<h3 id="transactions-escrow-payments-and-fx-target-workflow">Transactions, escrow, payments and FX — target workflow</h3>
+<p>A transaction starts as a draft with asset, parties, direction and money. Eligibility must validate both parties, beneficial owners, title, amount limits, sanctions and evidence freshness. Create a provider escrow reference only after eligible parties and an agreed contract exist. Accept funding only from authenticated provider events and reconciliation, never from a browser flag or redirect.</p>
+<p>Suggested states: <code>draft → eligibility_pending → eligible → escrow_open → funding_pending → funded → release_pending → settled</code>. Branches include <code>blocked</code>, <code>cancelled</code>, <code>disputed</code> and <code>refunded</code>; all monetary reversals are compensating ledger entries. Release requires a maker and a different approver, current compliance/asset evidence, verified beneficiary, escrow contract conditions, MFA and provider acceptance. Provider acknowledgement means <code>processing</code>, not <code>settled</code>.</p>
+<p>FX quotes carry base/quote currencies, source/target amounts, decimal rate, fees, expiry and provider reference. Booking requires an unexpired quote and a stable idempotency key. A hedge has instrument, notional, currency pair, maturity, counterparty, suitability/approval reference and remaining exposure. A quote is not a booked hedge. Payment tracking stores accepted/processing/settled/failed/reversed transitions, provider timestamps and a reconciled bank reference.</p>
+<p>Bank connections use the chosen provider's OAuth authorization-code flow with state and PKCE where supported; request only agreed account/payment scopes. Callback codes exchange server-side; provider refresh tokens live in the finance vault using envelope encryption/Secret Manager references, never in the browser or logs. Payment initiation and beneficiary changes require separate approval and provider-specific strong authentication where applicable.</p>
+<p>The target ledger is double-entry and append-only, balances each currency independently, and never uses floating point. FX uses explicit clearing legs and rate references rather than summing different currencies. Balance changes, outbox commands and transaction states commit in the same database transaction. Webhooks verify provider-specific signatures over raw bytes, timestamp/replay windows and key rotation; a unique <code>(provider,event_id)</code> inbox suppresses duplicates. Persist before acknowledging, accept out-of-order events through guarded transitions and reconcile independently to provider statements. This delivers at-least-once processing with idempotent effects; it does not promise exactly-once delivery.</p>
+<p><code>api-finance-target.json</code> specifies these planned integration endpoints. The runnable finance service creates drafts and returns 501 for submit: no bank, escrow or FX calls are executed.</p>
+<h2 id="7-operations-and-non-functional-targets">7. Operations and non-functional targets</h2>
+<p>Proposed targets, not measured guarantees: 99.9% monthly API availability; metadata p95 below 500 ms excluding provider calls; 20 MiB uploads; RPO no more than 15 minutes and RTO no more than four hours, subject to restore exercises. Cloud SQL is regional HA with automated backups and PITR enabled. Regional HA does not cover total regional loss; a secondary-region replica and cross-region object backup require residency approval and implementation before a regional DR commitment.</p>
+<p>Structured audit captures tenant, actor, action, resource ID and time without document contents or account numbers. API mutations and audit inserts share a DB transaction. Runtime cannot update/delete audit rows. This is not complete tamper-proof audit: database owners and project administrators retain control. Export audit and GCP Data Access logs to a separately administered immutable sink, enable appropriate Data Access logs, alert on unusual downloads and access failures, and restrict break-glass access before production. Failed authentication/authorization audit and security monitoring still need integration.</p>
+<p>Production readiness includes restore tests, alert routing, credential rotation, certificate/DNS checks, rate-limit tuning, account abuse protection, vulnerability scanning, dependency review, SAST, penetration testing and an incident runbook. Never log passwords, tokens, file contents or webhook bodies. TLS ingress, exact CORS origin, no-store responses, content-type protection and private bucket access are implemented. Add CSP and secure static hosting headers when migrating the frontend. A billing budget and quotas should be set before provisioning: four regional HA SQL instances are a substantial fixed cost. No price estimate is asserted without a workload and current quote.</p>
+<h2 id="8-implementation-matrix-and-delivery-phases">8. Implementation matrix and delivery phases</h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Included code</th>
+<th>Remaining before production</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Password sign-up/sign-in</td>
+<td>REST proxy on clients service</td>
+<td>SDK verification/recovery/refresh/MFA UI, account migration, abuse protection</td>
+</tr>
+<tr>
+<td>Approved identity and roles</td>
+<td>Verified/revocation-checked tokens; staff MFA; operator provisioning</td>
+<td>Privileged membership workflow, invitation audit, multi-tenant switching</td>
+</tr>
+<tr>
+<td>Four isolated vaults</td>
+<td>Four Cloud Run/SQL instances, per-domain identities/buckets/keys</td>
+<td>Live GCP validation, stronger project/admin separation if required</td>
+</tr>
+<tr>
+<td>Client/asset registration</td>
+<td>Typed create, get, paginated list and retry protection</td>
+<td>Cross-vault existence validation, edit/archive, client contact/UBO models</td>
+</tr>
+<tr>
+<td>KYC</td>
+<td>Draft case and evidence upload/read</td>
+<td>Screening provider, decision workflow, internal/external response redaction</td>
+</tr>
+<tr>
+<td>Documents</td>
+<td>Metadata, upload, scan job, clean-only downloads</td>
+<td>Automatic scan dispatch/retries/alerts, retention/deletion, load/security testing</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td>Transaction drafts; execution fails closed</td>
+<td>Ledger, eligibility, escrow, payment, FX/hedge and bank adapters, maker/checker</td>
+</tr>
+<tr>
+<td>Frontend integration</td>
+<td>API client module and migration map</td>
+<td>Apply migration to the frontend source, deploy new login/onboarding screens</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Terraform resources, edge TLS/Armor, IAM, private SQL, HA/PITR</td>
+<td>Authenticated plan/apply, migrations, DNS/secret setup, restore drills</td>
+</tr>
+<tr>
+<td>Audit</td>
+<td>Transactional append-only-for-runtime audit table</td>
+<td>Immutable independent export, denied-access logs, monitoring and response</td>
+</tr>
+</tbody>
+</table>
+<p>Recommended milestones: (1) recover the source repository and confirm tenancy/residency/provider decisions; (2) deploy an isolated development environment and migrate identity/client/asset/document flows; (3) implement compliance screening and human review; (4) build and certify ledger/escrow/bank/FX integrations in provider sandboxes; (5) complete recovery, security and operational acceptance; (6) controlled production migration. Estimates depend strongly on provider selection and their onboarding requirements.</p>
+<h2 id="9-source-traceability">9. Source traceability</h2>
+<ul>
+<li><a href="https://vermillion-speculoos-720254.netlify.app/index.html">Reviewed frontend</a>: deployed HTML/JS only, captured 15 October 2026; hashes in <code>frontend-source-manifest.json</code>.</li>
+<li><a href="https://drive.google.com/file/d/1d92bk8ghc6jd6BorRmE9WCuzSw_na6Qt/view">DataVaults D1.2 — Core Semantic Data Model</a>: sections 2.1 and 3 inform catalogue/distribution metadata, policy association and lifecycle separation. The proposed UUID document metadata can later export a DCAT/ODRL profile; it does not currently implement RDF/ODRL evaluation.</li>
+<li><a href="https://drive.google.com/file/d/1KeyEa5TgjNQInDv8j3u28shTWcPWraTF/view">DataVaults D1.3 — MVP and Usage Scenarios</a>: data acquisition, storage/sharing and revocation/deletion operations inform lifecycle design. Research-specific advanced cryptography/DLT remains out of scope.</li>
+<li><a href="https://drive.google.com/file/d/1LkDqhiQdOe_1vgjncVz3D93aKwbe20vY/view">DataVaults D5.1 — User Stories and Non-Functional Requirements</a>: sections 5.2.3, 5.2.10, 6.1.10 and 6.2 inform controlled sharing, policy decisions and non-functional acceptance. This is a domain adaptation, not a claim of conformance to every research requirement.</li>
+<li><a href="https://docs.cloud.google.com/run/docs/tutorials/identity-platform">Identity Platform end-user authentication on Cloud Run</a>, <a href="https://firebase.google.com/docs/auth/admin/verify-id-tokens">ID token verification</a>, <a href="https://docs.cloud.google.com/identity-platform/docs/reference/rest/v1/accounts/signUp">sign-up REST API</a>, <a href="https://docs.cloud.google.com/identity-platform/docs/reference/rest/v1/accounts/signInWithPassword">password sign-in API</a>.</li>
+<li><a href="https://docs.cloud.google.com/sql/docs/postgres/iam-logins">Cloud SQL IAM login</a>, <a href="https://docs.cloud.google.com/run/docs/configuring/vpc-direct-vpc">Cloud Run Direct VPC</a>, <a href="https://docs.cloud.google.com/storage/docs/encryption/customer-managed-keys">GCS customer-managed keys</a>. These sources ground service capability choices; the local validation report states what was actually tested.</li>
+</ul></main></body></html>

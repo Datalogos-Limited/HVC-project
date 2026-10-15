@@ -1,0 +1,47 @@
+@startuml
+title Identity and document process — supplied foundation
+actor User
+participant Browser
+participant "Identity Platform" as IDP
+actor "Authorised operator" as Operator
+participant "Domain API" as API
+database "Domain PostgreSQL" as DB
+collections "Quarantine GCS" as Q
+participant "Scanner job" as Scan
+collections "Clean GCS" as Clean
+User -> Browser : Sign up / sign in
+Browser -> IDP : SDK authentication (MFA for staff)
+IDP --> Browser : Verified ID token
+Operator -> IDP : Approve tenant/client/role claims
+Operator -> IDP : Revoke old sessions; require new sign-in
+Browser -> IDP : Sign in / obtain new token
+Browser -> API : POST document metadata + token + idempotency key
+API -> IDP : Verify token; check revocation/disabled account
+API -> DB : Set transaction-local tenant/client/actor scope
+API -> DB : Validate parent; create awaiting_upload + audit
+DB --> API : Document UUID
+API --> Browser : 201 metadata
+Browser -> API : PUT raw bytes + token
+API -> API : Enforce size, MIME, signature and SHA-256
+API -> DB : Lock document; check ownership/state
+API -> Q : Create-only object
+Q --> API : Object generation
+API -> DB : Commit quarantined + generation + audit
+API --> Browser : 202 quarantined
+Operator -> Scan : Run job with tenant/document UUIDs
+Scan -> Q : Fetch exact generation
+Scan -> Scan : Verify content + current AV definitions + scan
+alt scan clean
+ Scan -> Clean : Create-only clean object
+ Clean --> Scan : Clean generation
+ Scan -> DB : Commit clean status + pinned generation + audit
+ Browser -> API : Authenticated download
+ API -> DB : Authorise resource; require clean status
+ API -> Clean : Fetch exact clean generation
+ API --> Browser : Attachment bytes
+else infected or scanner error
+ Scan -> DB : Rejected if infected; leave quarantined on error
+ Browser -> API : Download
+ API --> Browser : 423 blocked
+end
+@enduml

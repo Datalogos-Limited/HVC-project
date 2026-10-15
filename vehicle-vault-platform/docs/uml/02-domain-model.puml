@@ -1,0 +1,193 @@
+@startuml
+hide methods
+skinparam classAttributeIconSize 0
+title Target domain model — see HLD implementation matrix
+class Tenant {
+ +id: UUID
+}
+class UserIdentity {
+ +uid: string
+}
+class Membership {
+ +tenantId: UUID
+ +role: Role
+ +clientId: UUID [0..1]
+}
+package "Clients vault" {
+ class ClientEntity {
+  +id: UUID
+  +tenantId: UUID
+  +entityType: individual|company|trust|family_office
+  +name: string
+  +domicile: ISO country
+ }
+ class BeneficialOwnership {
+ +controllerId: UUID
+ +controlledId: UUID
+ +controlBasis: string
+ +effectiveFrom: date
+}
+ class SharingGrant {
+ +purpose: string
+ +recipient: string
+ +expiresAt: datetime
+ +revokedAt: datetime [0..1]
+}
+}
+package "Compliance vault" {
+ class KYCCase {
+ +id: UUID
+ +clientId: UUID
+ +status: KYCState
+ +reviewDueAt: datetime
+}
+ class ScreeningResult {
+ +providerReference: string
+ +evidenceVersion: string
+ +outcome: string
+}
+ class ComplianceDecision {
+ +reviewerUid: string
+ +outcome: string
+ +reasonReference: string
+ +expiresAt: datetime
+}
+}
+package "Vehicles vault" {
+ class Vehicle {
+ +id: UUID
+ +clientId: UUID
+ +chassisNumber: string
+ +titleStatus: string
+}
+ class Valuation {
+ +asOf: datetime
+ +amountMinor: int64
+ +currency: ISO currency
+ +source: string
+}
+ class OwnershipPeriod {
+ +clientId: UUID
+ +from: datetime
+ +to: datetime [0..1]
+}
+ class Encumbrance {
+ +type: string
+ +creditorReference: string
+ +status: string
+}
+}
+package "Finance vault" {
+ class Transaction {
+ +id: UUID
+ +clientId: UUID
+ +assetId: UUID
+ +amountMinor: int64
+ +currency: ISO currency
+ +status: TransactionState
+}
+ class Escrow {
+ +providerReference: string
+ +contractReference: string
+ +state: EscrowState
+}
+ class Approval {
+ +makerUid: string
+ +approverUid: string
+ +evidenceVersion: string
+ +approvedAt: datetime
+}
+ class Payment {
+ +providerReference: string
+ +state: PaymentState
+ +bankReference: string
+}
+ class FXQuote {
+ +providerReference: string
+ +rate: decimal string
+ +expiresAt: datetime
+}
+ class Hedge {
+ +instrument: string
+ +notionalMinor: int64
+ +maturity: date
+ +state: string
+}
+ class BankConnection {
+ +provider: string
+ +consentId: string
+ +encryptedTokenReference: string
+}
+ class Journal {
+ +id: UUID
+ +postedAt: datetime
+}
+ class Posting {
+ +signedMinor: int64
+ +currency: ISO currency
+ +accountId: UUID
+}
+ class ProviderEvent {
+ +provider: string
+ +eventId: string
+ +receivedAt: datetime
+}
+ class OutboxCommand {
+ +idempotencyKey: string
+ +status: string
+}
+}
+class Document {
+ +id: UUID
+ +tenantId: UUID
+ +clientId: UUID
+ +parentId: UUID
+ +vault: Vault
+ +sha256: string
+ +generation: int64
+ +cleanGeneration: int64 [0..1]
+ +status: DocumentState
+}
+class AuditEvent {
+ +actorUid: string
+ +action: string
+ +resourceId: UUID
+ +occurredAt: datetime
+}
+Tenant "1" -- "*" Membership
+UserIdentity "1" -- "*" Membership
+Tenant "1" -- "*" ClientEntity
+ClientEntity "1" -- "*" KYCCase : UUID reference
+ClientEntity "1" -- "*" Vehicle : UUID reference
+ClientEntity "1" -- "*" Transaction : UUID reference
+ClientEntity "1" -- "*" BeneficialOwnership
+ClientEntity "1" -- "*" SharingGrant
+KYCCase "1" *-- "*" ScreeningResult
+KYCCase "1" *-- "*" ComplianceDecision
+Vehicle "1" *-- "*" Valuation
+Vehicle "1" *-- "*" OwnershipPeriod
+Vehicle "1" *-- "*" Encumbrance
+Transaction "*" --> "1" Vehicle : UUID reference
+Transaction "1" -- "0..1" Escrow
+Transaction "1" -- "*" Approval
+Transaction "1" -- "*" Payment
+Transaction "1" -- "*" FXQuote
+Transaction "1" -- "*" Hedge
+Transaction "1" -- "*" Journal
+Journal "1" *-- "2..*" Posting
+Payment "*" --> "1" BankConnection
+Transaction "1" -- "*" ProviderEvent
+Transaction "1" -- "*" OutboxCommand
+Document "*" --> ClientEntity : owner UUID
+Document ..> KYCCase : parent in compliance
+Document ..> Vehicle : parent in vehicles
+Document ..> Transaction : parent in finance
+AuditEvent ..> Document
+AuditEvent ..> Transaction
+note bottom
+ Cross-vault links are references, not SQL foreign keys.
+ Balance postings per currency; makerUid != approverUid.
+ Only draft KYC/transactions and core client/vehicle/document
+ records are implemented in the starter.
+end note
+@enduml

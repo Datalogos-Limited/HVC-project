@@ -1,0 +1,998 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DCB finance vault",
+    "version": "0.1.0",
+    "description": "Implemented starter endpoints. Finance execution returns 501. See HLD for production gaps."
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/v1/transactions": {
+      "get": {
+        "summary": "List Records",
+        "operationId": "list_records_v1_transactions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      },
+      "post": {
+        "summary": "Create Transaction",
+        "operationId": "create_transaction_v1_transactions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/v1/transactions/{record_id}": {
+      "get": {
+        "summary": "Get Record",
+        "operationId": "get_record_v1_transactions__record_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/v1/transactions/{record_id}/submit": {
+      "post": {
+        "summary": "Submit Transaction",
+        "operationId": "submit_transaction_v1_transactions__record_id__submit_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "blocked"
+      }
+    },
+    "/v1/documents": {
+      "post": {
+        "summary": "Begin Document",
+        "operationId": "begin_document_v1_documents_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      },
+      "get": {
+        "summary": "List Documents",
+        "operationId": "list_documents_v1_documents_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parent_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Parent Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/v1/documents/{document_id}": {
+      "get": {
+        "summary": "Get Document",
+        "operationId": "get_document_v1_documents__document_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/v1/documents/{document_id}/content": {
+      "put": {
+        "summary": "Upload Document",
+        "operationId": "upload_document_v1_documents__document_id__content_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/pdf": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/jpeg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-implementation-status": "implemented"
+      },
+      "get": {
+        "summary": "Download Document",
+        "operationId": "download_document_v1_documents__document_id__content_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorised attachment bytes",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid token"
+          },
+          "403": {
+            "description": "Unapproved membership, role or staff MFA"
+          },
+          "404": {
+            "description": "Resource not found in permitted scope"
+          },
+          "409": {
+            "description": "Conflicting retry or state"
+          },
+          "423": {
+            "description": "Document not cleared"
+          },
+          "503": {
+            "description": "Dependency unavailable"
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DocumentCreate": {
+        "properties": {
+          "parent_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Parent Id"
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 180,
+            "minLength": 1,
+            "pattern": "^[^/\\\\\\x00-\\x1f]+$",
+            "title": "Filename"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "identity",
+              "address",
+              "source_of_funds",
+              "mandate",
+              "title",
+              "insurance",
+              "valuation",
+              "service",
+              "inspection",
+              "contract",
+              "bank_statement",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "application/pdf",
+              "image/jpeg",
+              "image/png"
+            ],
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "maximum": 20971520.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Size Bytes"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "parent_id",
+          "filename",
+          "category",
+          "content_type",
+          "size_bytes",
+          "sha256"
+        ],
+        "title": "DocumentCreate"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PositiveMoney": {
+        "properties": {
+          "minor_units": {
+            "type": "integer",
+            "maximum": 9000000000000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Minor Units"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "GBP",
+              "USD",
+              "EUR",
+              "CHF",
+              "JPY"
+            ],
+            "title": "Currency"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "minor_units",
+          "currency"
+        ],
+        "title": "PositiveMoney"
+      },
+      "RecordEnvelope": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "client_id",
+          "version",
+          "created_at",
+          "data"
+        ],
+        "title": "RecordEnvelope"
+      },
+      "RecordPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecordEnvelope"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "RecordPage"
+      },
+      "TransactionDraft": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveMoney"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "purchase",
+              "sale"
+            ],
+            "title": "Direction"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client_id",
+          "asset_id",
+          "amount",
+          "direction"
+        ],
+        "title": "TransactionDraft"
+      },
+      "UploadResponse": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Document Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "quarantined",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document_id",
+          "status"
+        ],
+        "title": "UploadResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://finance.api.example.com",
+      "description": "Replace with the deployed host"
+    }
+  ]
+}
