@@ -1,0 +1,91 @@
+{
+  "origin": "https://vermillion-speculoos-720254.netlify.app/",
+  "reviewed_date": "2026-10-15",
+  "files": [
+    {
+      "deployed_path": "assets/clients.js",
+      "bytes": 3287,
+      "sha256": "6ab99d191d68474e9e69f9535d0c6681ce26e0b4c026684063b045b772967722"
+    },
+    {
+      "deployed_path": "assets/concierge.js",
+      "bytes": 2943,
+      "sha256": "a87da78605cf7720b330a0334a01d4c7e78c53346d584b1360fd131ff4af8591"
+    },
+    {
+      "deployed_path": "assets/intel.js",
+      "bytes": 9372,
+      "sha256": "0cbb626efd158cd531ebe56922c62134c72eeb6737b2afcc2b72a6f7f41cb61e"
+    },
+    {
+      "deployed_path": "assets/overview.js",
+      "bytes": 7198,
+      "sha256": "22dc571ed785276671725c0927e1e7b79080a94684c2c25a69c5bdc2e86217e5"
+    },
+    {
+      "deployed_path": "assets/register.js",
+      "bytes": 15698,
+      "sha256": "92fe54918a236783d43ae3f3e036fb3075d860bd4cb26c2faa65c6c3405e86e1"
+    },
+    {
+      "deployed_path": "assets/reports.js",
+      "bytes": 4636,
+      "sha256": "475bb3e7418ef63bc381af26228b3964cde31634475b68593e4bb13162877802"
+    },
+    {
+      "deployed_path": "assets/vault.js",
+      "bytes": 5521,
+      "sha256": "d1439d1226d8726c673b23d6bc534d9e704d0fbd9ffea74b9ad28a10f3815dbb"
+    },
+    {
+      "deployed_path": "chrome.js",
+      "bytes": 4426,
+      "sha256": "601c328bd644644bb75e320f92b2bcd1d8ca6580461425b5db87238521c6f636"
+    },
+    {
+      "deployed_path": "clients.html",
+      "bytes": 1686,
+      "sha256": "65ac9a8d2fab828e12688a970f77089e982dfc7f4708a16c6951f974e7190304"
+    },
+    {
+      "deployed_path": "concierge.html",
+      "bytes": 6700,
+      "sha256": "759b6fb08494caf4a48d6e0582e96055d17dafdccd02c966d573f42d1e3526cb"
+    },
+    {
+      "deployed_path": "index.html",
+      "bytes": 9592,
+      "sha256": "34b3bdd94ecfdba21f12494b3aa1144197f677663f8b1e9696b06e6ac2f12c55"
+    },
+    {
+      "deployed_path": "intel.html",
+      "bytes": 9071,
+      "sha256": "1894ce9acce371770294d54c202a2bccaded8db984e3877ac8f479a8432a3dc1"
+    },
+    {
+      "deployed_path": "login.html",
+      "bytes": 6091,
+      "sha256": "5b7d3d4c32e304bbf480ee41f4d7ada64a15253414890dda3dcbcaaa9a880015"
+    },
+    {
+      "deployed_path": "portfolio.html",
+      "bytes": 9274,
+      "sha256": "090f8829b57ac69b7eca88fd3fa261efac007f81c7843125aedb64c545b9b8d3"
+    },
+    {
+      "deployed_path": "reports.html",
+      "bytes": 4318,
+      "sha256": "329f1625b9fd71c805dae4269d14b2b72447fad267e1f839efb641c81a1048df"
+    },
+    {
+      "deployed_path": "store.js",
+      "bytes": 12717,
+      "sha256": "6d1062bd7e09069b5a98dfbca44fcd850f4227b662105cc0c0b7449fee54cbdf"
+    },
+    {
+      "deployed_path": "vault.html",
+      "bytes": 5175,
+      "sha256": "8f1b7e5751de46d3608d41d8d8c4fa4f846ecd074cb64c663ee9d58f16352bd6"
+    }
+  ]
+}

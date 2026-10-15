@@ -1,0 +1,1 @@
+Open HLD.html for the architecture report with embedded diagrams. The uml folder contains five editable PlantUML diagrams. API-GUIDE.md explains the JSON OpenAPI specifications. DEPLOYMENT.md and VALIDATION.md describe rollout and remaining checks. api-finance-target.json is design-only; financial execution is not implemented.

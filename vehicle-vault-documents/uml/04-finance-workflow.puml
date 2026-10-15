@@ -1,0 +1,40 @@
+@startuml
+title Target finance workflow — provider execution NOT implemented
+start
+:Create transaction draft;
+:Validate client/UBO eligibility,
+KYC freshness, sanctions, title and limits;
+if (Eligible?) then (yes)
+ :Create provider escrow under agreed contract;
+ :Wait for authenticated provider funding event;
+ :Persist unique provider event in inbox;
+ :Reconcile funding to provider/account statement;
+ if (Funded and reconciled?) then (yes)
+  :Maker requests release;
+  :Verify beneficiary and current evidence version;
+  :Different approver authorises with MFA;
+  if (FX needed?) then (yes)
+   :Request quote with expiry and fees;
+   :Approve FX/hedge and book with provider;
+   :Record provider execution reference;
+  endif
+  :Atomic commit of release intent,
+balanced ledger journal and outbox command;
+  :Worker sends idempotent provider request;
+  :Record accepted/processing response;
+  :Wait for signed settlement event;
+  :Reconcile statement;
+  if (Settlement confirmed?) then (yes)
+   :Post final ledger/state and notify;
+  else (no)
+   :Investigate failure or dispute;
+   :Use compensating entries for reversal;
+  endif
+ else (no)
+  :Keep funding_pending; investigate mismatch;
+ endif
+else (no)
+ :Block settlement and route to review;
+endif
+stop
+@enduml

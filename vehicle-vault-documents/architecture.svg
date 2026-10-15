@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="825" viewBox="0 0 1240 825" role="img"><title>Four-vault GCP architecture</title><desc>Identity Platform, HTTPS edge, four independent APIs, databases and document stores, plus planned external providers.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs><rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="35" y="42" font-family="Arial,sans-serif" font-size="25" fill="#0f172a" font-weight="bold">DREAM CAR BROKERS  /  GCP ARCHITECTURE</text>
+<text x="35" y="68" font-family="Arial,sans-serif" font-size="15" fill="#475569" font-weight="normal">GCP foundation configuration · finance/provider execution remains planned</text>
+<rect x="370" y="95" width="500" height="85" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M378,95 H862 Q870,95 870,103 V133 H370 V103 Q370,95 378,95" fill="#dbeafe"/>
+<text x="384" y="120" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Web frontend + Identity Platform</text>
+<text x="384" y="157" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Verified email · approved membership · staff MFA</text>
+<path d="M620,180 L620,213" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="370" y="215" width="500" height="85" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M378,215 H862 Q870,215 870,223 V253 H370 V223 Q370,215 378,215" fill="#dbeafe"/>
+<text x="384" y="240" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">HTTPS load balancer + Cloud Armor</text>
+<text x="384" y="277" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Four API subdomains · application token verification</text>
+<path d="M620,300 V322 H165 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="30" y="350" width="275" height="102" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,350 H297 Q305,350 305,358 V388 H30 V358 Q30,350 38,350" fill="#dbeafe"/>
+<text x="44" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">CLIENTS API</text>
+<text x="44" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="44" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Relationship manager</text>
+<path d="M165,452 L165,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="30" y="484" width="275" height="101" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,484 H297 Q305,484 305,492 V522 H30 V492 Q30,484 38,484" fill="#dbeafe"/>
+<text x="44" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="44" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="44" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="30" y="605" width="275" height="100" rx="8" fill="white" stroke="#dbeafe" stroke-width="2"/>
+<path d="M38,605 H297 Q305,605 305,613 V643 H30 V613 Q30,605 38,605" fill="#dbeafe"/>
+<text x="44" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="44" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="44" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M165,585 L165,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H470 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="335" y="350" width="275" height="102" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,350 H602 Q610,350 610,358 V388 H335 V358 Q335,350 343,350" fill="#dcfce7"/>
+<text x="349" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">VEHICLES API</text>
+<text x="349" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="349" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Asset manager</text>
+<path d="M470,452 L470,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="335" y="484" width="275" height="101" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,484 H602 Q610,484 610,492 V522 H335 V492 Q335,484 343,484" fill="#dcfce7"/>
+<text x="349" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="349" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="349" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="335" y="605" width="275" height="100" rx="8" fill="white" stroke="#dcfce7" stroke-width="2"/>
+<path d="M343,605 H602 Q610,605 610,613 V643 H335 V613 Q335,605 343,605" fill="#dcfce7"/>
+<text x="349" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="349" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="349" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M470,585 L470,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H775 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="640" y="350" width="275" height="102" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,350 H907 Q915,350 915,358 V388 H640 V358 Q640,350 648,350" fill="#fef3c7"/>
+<text x="654" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">COMPLIANCE API</text>
+<text x="654" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="654" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Compliance officer</text>
+<path d="M775,452 L775,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="640" y="484" width="275" height="101" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,484 H907 Q915,484 915,492 V522 H640 V492 Q640,484 648,484" fill="#fef3c7"/>
+<text x="654" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="654" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="654" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="640" y="605" width="275" height="100" rx="8" fill="white" stroke="#fef3c7" stroke-width="2"/>
+<path d="M648,605 H907 Q915,605 915,613 V643 H640 V613 Q640,605 648,605" fill="#fef3c7"/>
+<text x="654" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="654" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="654" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M775,585 L775,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M620,300 V322 H1080 V348" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="945" y="350" width="275" height="102" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,350 H1212 Q1220,350 1220,358 V388 H945 V358 Q945,350 953,350" fill="#ede9fe"/>
+<text x="959" y="375" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">FINANCE API</text>
+<text x="959" y="412" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Cloud Run · domain service account</text>
+<text x="959" y="435" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Finance operator</text>
+<path d="M1080,452 L1080,481" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="945" y="484" width="275" height="101" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,484 H1212 Q1220,484 1220,492 V522 H945 V492 Q945,484 953,484" fill="#ede9fe"/>
+<text x="959" y="509" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private PostgreSQL</text>
+<text x="959" y="546" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Separate instance · IAM login</text>
+<text x="959" y="569" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Tenant + client row-level security</text>
+<rect x="945" y="605" width="275" height="100" rx="8" fill="white" stroke="#ede9fe" stroke-width="2"/>
+<path d="M953,605 H1212 Q1220,605 1220,613 V643 H945 V613 Q945,605 953,605" fill="#ede9fe"/>
+<text x="959" y="630" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">Private document storage</text>
+<text x="959" y="667" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Quarantine + clean · vault KMS key</text>
+<text x="959" y="690" font-family="Arial,sans-serif" font-size="13" fill="#0f172a" font-weight="normal">Dedicated antivirus scanner identity</text>
+<path d="M1080,585 L1080,603" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="230" y="740" width="780" height="60" rx="8" fill="white" stroke="#f1f5f9" stroke-width="2"/>
+<path d="M238,740 H1002 Q1010,740 1010,748 V778 H230 V748 Q230,740 238,740" fill="#f1f5f9"/>
+<text x="244" y="765" font-family="Arial,sans-serif" font-size="16" fill="#0f172a" font-weight="bold">PLANNED: KYC/AML · escrow · payments · bank OAuth · FX/hedges</text>
+</svg>

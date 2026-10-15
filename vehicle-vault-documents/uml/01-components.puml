@@ -1,0 +1,68 @@
+@startuml
+skinparam componentStyle rectangle
+title Dream Car Brokers — deployed foundation and planned integrations
+actor Client
+actor "Domain staff" as Staff
+rectangle "Browser" {
+ component "Dream Car Brokers UI\nAPI adapter" as UI
+}
+cloud "Identity Platform\nVerified identity / MFA" as IDP
+component "HTTPS Load Balancer\nCloud Armor" as Edge
+package "GCP environment — London proposed" {
+ package "Clients vault" {
+  component "Clients API\nCloud Run / clients SA" as C
+  database "Client PostgreSQL\nIAM / private IP / RLS" as CDB
+  storage "Client quarantine + clean\nGCS / client CMEK" as CB
+ }
+ package "Vehicles vault" {
+  component "Vehicles API\nCloud Run / vehicles SA" as V
+  database "Vehicle PostgreSQL\nIAM / private IP / RLS" as VDB
+  storage "Vehicle quarantine + clean\nGCS / vehicle CMEK" as VB
+ }
+ package "Compliance vault" {
+  component "Compliance API\nCloud Run / compliance SA" as K
+  database "Compliance PostgreSQL\nIAM / private IP / RLS" as KDB
+  storage "Compliance quarantine + clean\nGCS / compliance CMEK" as KB
+ }
+ package "Finance vault" {
+  component "Finance API\nCloud Run / finance SA" as F
+  database "Finance PostgreSQL\nIAM / private IP / RLS" as FDB
+  storage "Finance quarantine + clean\nGCS / finance CMEK" as FB
+ }
+ component "Per-vault antivirus jobs\nSeparate scanner identities" as Scan
+ component "Outbox / inbox workers\nPLANNED" as Workers
+}
+cloud "KYC / AML provider\nPLANNED" as KYC
+cloud "Escrow / banking / FX providers\nPLANNED" as Providers
+Client --> UI
+Staff --> UI
+UI --> IDP : Sign up / sign in / MFA
+UI --> Edge : HTTPS + end-user bearer token
+Edge --> C
+Edge --> V
+Edge --> K
+Edge --> F
+C --> CDB
+C --> CB
+V --> VDB
+V --> VB
+K --> KDB
+K --> KB
+F --> FDB
+F --> FB
+Scan --> CB
+Scan --> VB
+Scan --> KB
+Scan --> FB
+Scan --> CDB
+Scan --> VDB
+Scan --> KDB
+Scan --> FDB
+K ..> KYC : Adapter / review (planned)
+F ..> Workers : Atomic outbox (planned)
+Workers ..> Providers : Provider APIs (planned)
+note bottom of Workers
+ Provider integration is not active.
+ Finance submit returns 501.
+end note
+@enduml
